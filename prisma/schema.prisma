@@ -1,0 +1,154 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  MEMBER
+  ADMIN
+}
+
+enum IdeaStatus {
+  DRAFT
+  PENDING
+  UNDER_REVIEW
+  APPROVED
+  REJECTED
+}
+
+enum VoteType {
+  UPVOTE
+  DOWNVOTE
+}
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  name          String
+  password      String?
+  role          Role      @default(MEMBER)
+  avatar        String?
+  bio           String?
+  isActive      Boolean   @default(true)
+  authProvider  String    @default("local")
+  googleId      String?   @unique
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  ideas         Idea[]
+  votes         Vote[]
+  comments      Comment[]
+  purchases     Purchase[]
+  newsletter    Newsletter?
+
+  @@map("users")
+}
+
+model Category {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?
+  icon        String?
+  color       String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  ideas       Idea[]
+
+  @@map("categories")
+}
+
+model Idea {
+  id               String     @id @default(uuid())
+  title            String
+  slug             String     @unique
+  problemStatement String
+  proposedSolution String
+  description      String
+  images           String[]
+  isPaid           Boolean    @default(false)
+  price            Float?
+  status           IdeaStatus @default(DRAFT)
+  rejectionFeedback String?
+  viewCount        Int        @default(0)
+  createdAt        DateTime   @default(now())
+  updatedAt        DateTime   @updatedAt
+
+  authorId         String
+  author           User       @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  categoryId       String
+  category         Category   @relation(fields: [categoryId], references: [id])
+
+  votes            Vote[]
+  comments         Comment[]
+  purchases        Purchase[]
+
+  @@map("ideas")
+}
+
+model Vote {
+  id        String   @id @default(uuid())
+  type      VoteType
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  ideaId    String
+  idea      Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, ideaId])
+  @@map("votes")
+}
+
+model Comment {
+  id        String    @id @default(uuid())
+  content   String
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  ideaId    String
+  idea      Idea      @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  parentId  String?
+  parent    Comment?  @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[] @relation("CommentReplies")
+
+  @@map("comments")
+}
+
+model Purchase {
+  id              String   @id @default(uuid())
+  amount          Float
+  stripePaymentId String   @unique
+  status          String   @default("completed")
+  createdAt       DateTime @default(now())
+
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  ideaId          String
+  idea            Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, ideaId])
+  @@map("purchases")
+}
+
+model Newsletter {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+
+  userId    String?  @unique
+  user      User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("newsletters")
+}
