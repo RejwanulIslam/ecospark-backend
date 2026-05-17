@@ -42,6 +42,7 @@ model User {
   votes         Vote[]
   comments      Comment[]
   purchases     Purchase[]
+  bookmarks     Bookmark[]
   newsletter    Newsletter?
 
   @@map("users")
@@ -87,6 +88,7 @@ model Idea {
   votes            Vote[]
   comments         Comment[]
   purchases        Purchase[]
+  bookmarks        Bookmark[]
 
   @@map("ideas")
 }
@@ -140,6 +142,20 @@ model Purchase {
 
   @@unique([userId, ideaId])
   @@map("purchases")
+}
+
+model Bookmark {
+  id        String   @id @default(uuid())
+  createdAt DateTime @default(now())
+
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  ideaId    String
+  idea      Idea     @relation(fields: [ideaId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, ideaId])
+  @@map("bookmarks")
 }
 
 model Newsletter {

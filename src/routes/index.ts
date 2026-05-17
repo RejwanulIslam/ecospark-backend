@@ -9,6 +9,7 @@ import userRoutes from "../modules/user/user.route";
 import adminRoutes from "../modules/admin/admin.route";
 import newsletterRoutes from "../modules/newsletter/newsletter.route";
 import uploadRoutes from "../modules/upload/upload.route";
+import bookmarkRoutes from "../modules/bookmark/bookmark.route";
 
 const router = Router();
 
@@ -22,5 +23,6 @@ router.use("/users", userRoutes);
 router.use("/admin", adminRoutes);
 router.use("/newsletter", newsletterRoutes);
 router.use("/upload", uploadRoutes);
+router.use("/bookmarks", bookmarkRoutes);
 
 export default router;
